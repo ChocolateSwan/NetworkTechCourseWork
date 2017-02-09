@@ -1,0 +1,26 @@
+Подготовка:
+sudo apt install socat
+sudo apt install python3-serial
+
+Создание виртуальных портов:
+maxim@maximPC:~/Документы/учебка/сети/курсовая/NetworkTechCourseWork$ sudo socat -d -d PTY,link=./ptyp1,b9600 PTY,link=./ptyp2,b9600
+
+
+отправка:
+>>> import serial
+>>> ser = serial.Serial('ptyp1', 9600, rtscts=True,dsrdtr=True)
+>>> ser.write(bytes('hello', 'utf-8'))
+>>> ser.write(bytes('some text', 'utf-8'))
+>>> ser.close()
+
+получение :
+>>> import serial
+>>> 
+>>> ser = serial.Serial('ptyp2', 9600, rtscts=True,dsrdtr=True)
+>>> while True:
+...   print(ser.read())
+... 
+
+
+
+
