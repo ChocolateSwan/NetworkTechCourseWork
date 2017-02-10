@@ -7,9 +7,11 @@ import subprocess
 def parse_connections_file():
     connections = {}
     with open('connections', 'r') as file:
-        for str in file.read().split(';'):
-            y = str.split(':')
-            connections[y[0].strip()] = y[1].strip()
+        content = file.read().strip()
+        if not content.isspace() and len(content) != 0:
+            for str in content.split(';'):
+                y = str.split(':')
+                connections[y[0].strip()] = y[1].strip()
     return connections
 
 
@@ -26,8 +28,12 @@ def connect(alias, connections):
     if alias in connections.keys():
         print('Соединение с таким алиасом уже существует')
         return
-    command = 'socat -d -d PTY,link=./{0}_1,b9600 PTY,link=./{0}_2,b9600'.format(alias)
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+    command = [
+        '/usr/bin/socat',
+        'PTY,link=./{0}_1,b9600'.format(alias),
+        'PTY,link=./{0}_2,b9600'.format(alias)
+    ]
+    process = subprocess.Popen(command, stdout=subprocess.PIPE)
     connections[alias] = process.pid
     write_connections_file(connections)
     print_connect(alias)
@@ -38,7 +44,6 @@ def disconnect(alias, connections):
         print('Соединение с таким алиасом не существует')
         return
     os.kill(int(connections[alias]), signal.SIGTERM)
-    os.kill(int(connections[alias]) + 1, signal.SIGTERM)
     del connections[alias]
     write_connections_file(connections)
 
@@ -74,5 +79,7 @@ if __name__ == '__main__':
         disconnect(sys.argv[2], connections)
     elif sys.argv[1] == 'show':
         show(connections)
+    elif sys.argv[1] == 'help':
+        help()
     else:
         print('Неверная команда')
