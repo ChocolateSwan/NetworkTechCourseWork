@@ -1,7 +1,20 @@
 Подготовка:
 sudo apt install socat
 sudo apt install python3-serial
+sudo apt-get install python3-pyqt5 pyqt5-dev-tools
 
+Работа с виртуальными портами:
+cd connector
+python3 connector.py connect COM1 - создать порт COM1 с подключенияеми COM1_1 COM1_2
+python3 connector.py disconnect COM1 - разъединить порт
+python3 connector.py show - список существующих соединений
+
+
+
+
+
+
+Ниже не особо важно
 Создание виртуальных портов:
 maxim@maximPC:~/Документы/учебка/сети/курсовая/NetworkTechCourseWork$ sudo socat -d -d PTY,link=./ptyp1,b9600 PTY,link=./ptyp2,b9600
 
