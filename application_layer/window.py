@@ -1,16 +1,28 @@
+from PyQt5 import QtGui
+import PyQt5.QtWidgets
 
-import sys
-from PyQt5.QtWidgets import QApplication, QWidget
 
+class Form1(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.setupUi(self)
+        self.button1.clicked.connect(self.handleButton)
+        self.window2 = None
+
+    def handleButton(self):
+        if self.window2 is None:
+            self.window2 = Form2(self)
+        self.window2.show()
+
+class Form2(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.setupUi(self)
 
 if __name__ == '__main__':
 
-    app = QApplication(sys.argv)
-
-    w = QWidget()
-    w.resize(600, 400)
-    w.move(300, 300)
-    w.setWindowTitle('Окно, созданное в питоне')
-    w.show()
-
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    window = Form1()
+    window.show()
     sys.exit(app.exec_())
