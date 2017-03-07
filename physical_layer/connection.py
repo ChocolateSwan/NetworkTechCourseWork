@@ -48,7 +48,7 @@ class Connection:
         self.on_received = None
 
     def connect(self, port_name, **kargs):
-        self.ser = serial.Serial(port_name, rtscts=True, dsrdtr=True, **kargs)
+        self.ser = serial.Serial(port_name,rtscts=True, dsrdtr=True, **kargs)
         self.thread.start()
 
     def disconnect(self):

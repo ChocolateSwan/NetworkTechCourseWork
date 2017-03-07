@@ -3,7 +3,7 @@ sudo apt install socat
 sudo apt install python3-serial
 sudo apt-get install python3-pyqt5 pyqt5-dev-tools
 
-Работа с виртуальными портами:
+Работа с виртуальными порта
 cd connector
 python3 connector.py connect COM1 - создать порт COM1 с подключенияеми COM1_1 COM1_2
 python3 connector.py disconnect COM1 - разъединить порт
