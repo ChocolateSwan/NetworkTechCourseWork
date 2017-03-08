@@ -37,7 +37,7 @@ class LogicalConnection:
 
 
     def wrap (self,resipient, msg):
-        return self.username+'\0'+ resipient+'\0'+'0'+'\0'+'\0'+msg+'\0'
+        return self.username+'\0'+ resipient+'\0'+'0'+'\0'+msg+'\0'
 
 
     def make_cyclic_code (self, vector):
@@ -51,28 +51,58 @@ class LogicalConnection:
     def send(self, recipient, message): #massage - строка макса
 
         message=self.wrap(recipient,message)
-
+        print(message)
         binary_string=""
         encoded_message=""
 
         # создание массива бинарных кодов
         for i in message:
             binary_string+= self.make_binary_code(i)
-
+        print (binary_string)
         #кодирование каждых 11-ти символов цикличесим кодом [11,15], запись символов с данными кодами в строку
         for j in (binary_string[i:i + 11] for i in range(0, len(binary_string), 11)): #вроде должно работать
             encoded_message+=chr(self.make_cyclic_code(int(j,base=2)))
         print(encoded_message)
+        print(encoded_message)
+        return encoded_message.encode('utf-8') # переписать как маше(...)
 
-        #маше(encoded_message.encode('utf-8'))
+
+    def find_error(self,rest):
+        guess_error = 0b1  # Ищем ошибку
+        rest_error = 0
+        while rest_error != rest:
+            rest_error = self.division(guess_error)
+            guess_error <<=1
+        return guess_error>>1
+
+
+    def receive (self,message):
+        message = message.decode('utf-8')
+        binary_string=""
+        decoded_message=""
+        for i in message:
+            rest = self.division(ord(i))
+            if rest != 0:
+                i=ord(i)^self.find_error(rest)
+            binary_string+=(str(bin(ord(i)>>4))[2:13]).rjust(11,'0')
+        print (binary_string)
+        for j in (binary_string[i:i + 8] for i in range(0, len(binary_string), 8)):
+           decoded_message+=chr(int(j,base=2))
+
+        print(decoded_message)
+
+        # почти работает !!!!!!!!!!!!!!!!!
+
+
+
+
 
 
 
 
 print(bin(ord('a')))
 obj= LogicalConnection("user","port_in",100,"port_out",200)
-print(obj.wrap('all','fghjk'))
-obj.send('user',"aaa")
+obj.receive(obj.send('user',"aaabb"))
 
 
 
