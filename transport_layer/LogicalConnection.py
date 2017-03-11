@@ -1,5 +1,6 @@
 # Один исходный символ - один закодированный символ.
 
+# Максу - имя не пустое и не all
 class LogicalConnection:
     def __init__(self,
                  username, # пользователь
@@ -37,16 +38,17 @@ class LogicalConnection:
         return rest
 
     #Обертка сообщения.
-    def wrap (self,resipient, msg):
-        return self.username+'\0'+ resipient+'\0'+'0'+'\0'+msg+'\0'
+    def wrap (self,resipient, msg, sender, counter):
+        return sender+'\0'+ resipient+'\0'+str(counter)+'\0'+msg+'\0'
 
     # Циклическое кодирование.
     def make_cyclic_code (self, vector):
         return (vector<<4)^self.division(vector<<4)
 
     # Отправка сообщения.
-    def send(self, recipient, message):    # massage - строка макса
-        message=self.wrap(recipient,message)
+    def send(self, recipient, message,**kwargs):    # massage - строка макса
+        message = self.wrap(recipient, message,    # Обертка сообщения.
+                            kwargs.get('sender',self.username), kwargs.get('counter', 0))
         encoded_message=""    # Закодированное сообщение.
         # Кодирование каждого символа циклическим кодом [11,15]
         for i in message:
@@ -73,11 +75,60 @@ class LogicalConnection:
             decoded_message += chr(ord(i) >> 4)
         print(decoded_message)    # Убрать потом!!!!
 
-        self.parse_message(decoded_message)
+        #self.parse_message(decoded_message)    #Раскомментировать!!!!
 
     # Интерпретация сообщения.
-    def parse_message(message):
-        pass
+    def parse_message(self, message):  # 0-отправитель, 1-получатель, 2-счетчик, 3-текст
+        info_in_message = message.split("\0")
+        # Ошибочный формат сообщения.
+        if self.validate(info_in_message):
+
+            if (info_in_message[0]==self.username and info_in_message[1]==self.username):
+                pass    # ???????????????????????????????????????
+
+            # Если сообщение адресовано нам.
+            if (info_in_message[1] == self.username):
+                #self.on_received(info_in_message[0], info_in_message[3])    # Раскомментировать!!!!
+                info_in_message[2]=int(info_in_message[2])+1    # Увеличиваем счетчик принятых.
+                self.send(info_in_message[1],info_in_message[3],
+                          sender = info_in_message[0],counter = info_in_message[2])    # Отпраляем обратно
+
+            # Если мы отправители.
+            if (info_in_message[0]==self.username):
+                if (info_in_message[1] == 'all'):    # Если послали всем.
+                    if (int(info_in_message[2]) < 2):    # Если приняли не все.
+                        pass
+                        # self.broadcast_failed()    #Раскомментировать!!!
+                else:    # Если отправляли направленно.
+                    if (info_in_message[2] == "0"):    # Если адресат не принял
+                        pass
+                        #self.recipient_not_found()    #Раскомментировать!!!!
+                    elif (info_in_message[2] == "2"):    # Если имеется конфликт имен.
+                        pass
+                        #self.on_conflict()    # Раскомментировать!!!!
+        else:    # Если сообщение невалидно
+            pass
+
+
+    def validate (info_in_message):
+        is_valid=True
+        if (info_in_message[-1]!= '' or len(info_in_message)!=5): # Общая проверка.
+            is_valid=False
+        if (info_in_message[0]==""):    # Проверка отправителя.
+            is_valid = False
+        if (info_in_message[1]==""):    # Проверка получателя.
+            is_valid = False
+        if not((info_in_message[2]).isdigit()):    # Проверка счетчика.
+            is_valid = False
+        if (info_in_message[3]==""):    # Проверка cообщения.
+            is_valid = False
+        return is_valid
+
+
+
+
+
+
 
 
 obj= LogicalConnection("user","port_in",100,"port_out",200)
