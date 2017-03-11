@@ -1,4 +1,4 @@
-
+# Один исходный символ - один закодированный символ.
 
 class LogicalConnection:
     def __init__(self,
@@ -26,6 +26,7 @@ class LogicalConnection:
         self.broadcast_failed = None
         #-------------------------------
 
+    # Получение остатка от деления.
     def division(self, rest):
         divider = 0b10011;
         while int.bit_length(rest) >= int.bit_length(divider):
@@ -35,74 +36,52 @@ class LogicalConnection:
             rest ^= sub
         return rest
 
-
+    #Обертка сообщения.
     def wrap (self,resipient, msg):
         return self.username+'\0'+ resipient+'\0'+'0'+'\0'+msg+'\0'
 
-
+    # Циклическое кодирование.
     def make_cyclic_code (self, vector):
         return (vector<<4)^self.division(vector<<4)
 
-
-    def make_binary_code (self, symbol):
-        return (str(bin(ord(symbol)))[2:10]).rjust(8,'0')
-
-
-    def send(self, recipient, message): #massage - строка макса
-
+    # Отправка сообщения.
+    def send(self, recipient, message):    # massage - строка макса
         message=self.wrap(recipient,message)
-        print(message)
-        binary_string=""
-        encoded_message=""
-
-        # создание массива бинарных кодов
+        encoded_message=""    # Закодированное сообщение.
+        # Кодирование каждого символа циклическим кодом [11,15]
         for i in message:
-            binary_string+= self.make_binary_code(i)
-        print (binary_string)
-        #кодирование каждых 11-ти символов цикличесим кодом [11,15], запись символов с данными кодами в строку
-        for j in (binary_string[i:i + 11] for i in range(0, len(binary_string), 11)): #вроде должно работать
-            encoded_message+=chr(self.make_cyclic_code(int(j,base=2)))
-        print(encoded_message)
-        print(encoded_message)
+            encoded_message +=chr(self.make_cyclic_code(ord(i)))
         return encoded_message.encode('utf-8') # переписать как маше(...)
 
-
+    # Проверка на наличие ошибки (остаток от деления).
     def find_error(self,rest):
-        guess_error = 0b1  # Ищем ошибку
+        guess_error = 0b1    # Предполагаемая ошибка.
         rest_error = 0
         while rest_error != rest:
             rest_error = self.division(guess_error)
             guess_error <<=1
         return guess_error>>1
 
-
+    # Прием сообщения.
     def receive (self,message):
         message = message.decode('utf-8')
-        binary_string=""
-        decoded_message=""
+        decoded_message = ""    # Раскодированное сообщение.
         for i in message:
-            rest = self.division(ord(i))
+            rest = self.division(ord(i))    # Проверка на ошибку.
             if rest != 0:
-                i=ord(i)^self.find_error(rest)
-            binary_string+=(str(bin(ord(i)>>4))[2:13]).rjust(11,'0')
-        print (binary_string)
-        for j in (binary_string[i:i + 8] for i in range(0, len(binary_string), 8)):
-           decoded_message+=chr(int(j,base=2))
+                i = chr(ord(i) ^ self.find_error(rest))    # Попытка исправления ошибки.
+            decoded_message += chr(ord(i) >> 4)
+        print(decoded_message)    # Убрать потом!!!!
 
-        print(decoded_message)
+        self.parse_message(decoded_message)
 
-        # почти работает !!!!!!!!!!!!!!!!!
-
-
+    # Интерпретация сообщения.
+    def parse_message(message):
+        pass
 
 
-
-
-
-
-print(bin(ord('a')))
 obj= LogicalConnection("user","port_in",100,"port_out",200)
-obj.receive(obj.send('user',"aaabb"))
+obj.receive(obj.send('user',"ksmcvkvy"))
 
 
 
