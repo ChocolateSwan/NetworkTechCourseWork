@@ -1,5 +1,7 @@
 # Один исходный символ - один закодированный символ.
 
+from transport_layer import repeated_timer
+import time
 # Максу - имя не пустое и не all
 class LogicalConnection:
     def __init__(self,
@@ -25,7 +27,12 @@ class LogicalConnection:
         # Колбек для случая, когда широковещательное дошло не до всех
         # Аргументы: сообщение
         self.broadcast_failed = None
-        #-------------------------------
+        # Поддержка логического соединения.
+        self.logical_connect = repeated_timer.RepeatedTimer(3,self.send,'all', 'logical connection')
+        #------------------------------
+
+    def __del__(self):
+        self.logical_connect.stop()
 
     # Получение остатка от деления.
     def division(self, rest):
@@ -48,11 +55,13 @@ class LogicalConnection:
     # Отправка сообщения.
     def send(self, recipient, message,**kwargs):    # massage - строка макса
         message = self.wrap(recipient, message,    # Обертка сообщения.
-                            kwargs.get('sender',self.username), kwargs.get('counter', 0))
+                            kwargs.get('sender', self.username), kwargs.get('counter', 0))
         encoded_message=""    # Закодированное сообщение.
         # Кодирование каждого символа циклическим кодом [11,15]
         for i in message:
             encoded_message +=chr(self.make_cyclic_code(ord(i)))
+        print(encoded_message)
+        self.receive(encoded_message.encode('utf-8')) # убратьььььььььььььььььььььь!!!!!
         return encoded_message.encode('utf-8') # переписать как маше(...)
 
     # Проверка на наличие ошибки (остаток от деления).
@@ -61,8 +70,8 @@ class LogicalConnection:
         rest_error = 0
         while rest_error != rest:
             rest_error = self.division(guess_error)
-            guess_error <<=1
-        return guess_error>>1
+            guess_error <<= 1
+        return guess_error >> 1
 
     # Прием сообщения.
     def receive (self,message):
@@ -129,11 +138,12 @@ class LogicalConnection:
 
 
 
-
-
 obj= LogicalConnection("user","port_in",100,"port_out",200)
-obj.receive(obj.send('user',"ksmcvkvy"))
-
+obj.send('user',"ksmcvkvy")
+time.sleep(5)
+obj.send('user',"ksmcvkvy")
+time.sleep(1)
+obj.send('user',"ksmcvkvy")
 
 
 
